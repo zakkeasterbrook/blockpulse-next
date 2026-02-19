@@ -7,9 +7,9 @@ import { Activity, ArrowRight, ArrowUpRight, Radio, RefreshCw, Zap } from "lucid
 type PulseStats = {
   blockHeight: number;
   mempoolTxs: number;
-  fastestFee: number;
+  highFeePerKb: number;
   priceUSD: number;
-  hashRate: number;
+  hashRateEh: number;
   updatedAt: string;
 };
 
@@ -31,7 +31,7 @@ const featureCards = [
 const phases = [
   {
     label: "Catch a Block",
-    desc: "Realtime height + mempool delta push the hero gradient and ticker." ,
+    desc: "Realtime height + mempool delta push the hero gradient and ticker.",
   },
   {
     label: "Compose",
@@ -62,32 +62,33 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
+
     const fetchStats = async () => {
       try {
         setError(null);
-        const [blocksRes, mempoolRes, priceRes] = await Promise.all([
-          fetch("https://mempool.space/api/blocks?limit=1"),
-          fetch("https://mempool.space/api/v1/dashboard"),
-          fetch("https://api.coindesk.com/v1/bpi/currentprice/BTC.json"),
-        ]);
+        const blockCypherPromise = fetch("https://api.blockcypher.com/v1/btc/main");
+        const pricePromise = fetch("https://api.coindesk.com/v1/bpi/currentprice/BTC.json");
+        const hashPromise = fetch("https://blockchain.info/q/hashrate?cors=true");
 
-        if (!blocksRes.ok || !mempoolRes.ok || !priceRes.ok) {
+        const [blockRes, priceRes, hashRes] = await Promise.all([blockCypherPromise, pricePromise, hashPromise]);
+
+        if (!blockRes.ok || !priceRes.ok || !hashRes.ok) {
           throw new Error("Failed to load live data");
         }
 
-        const [blockJson, mempoolJson, priceJson] = await Promise.all([
-          blocksRes.json(),
-          mempoolRes.json(),
+        const [blockJson, priceJson, hashText] = await Promise.all([
+          blockRes.json(),
           priceRes.json(),
+          hashRes.text(),
         ]);
 
-        const latestBlock = blockJson?.[0];
+        const hashRateGh = Number(hashText.trim());
         const statsPayload: PulseStats = {
-          blockHeight: latestBlock?.height ?? 0,
-          mempoolTxs: mempoolJson?.mempool?.count ?? 0,
-          fastestFee: mempoolJson?.mempool?.vsize ?? 0,
+          blockHeight: blockJson?.height ?? 0,
+          mempoolTxs: blockJson?.unconfirmed_count ?? 0,
+          highFeePerKb: blockJson?.high_fee_per_kb ?? 0,
           priceUSD: Number(priceJson?.bpi?.USD?.rate_float ?? 0),
-          hashRate: mempoolJson?.difficulty?.current_hash_rate ?? 0,
+          hashRateEh: Number.isFinite(hashRateGh) ? hashRateGh / 1_000_000 : 0,
           updatedAt: new Date().toISOString(),
         };
 
@@ -151,7 +152,7 @@ export default function Home() {
                   View Repo <ArrowUpRight size={18} />
                 </Link>
                 <Link
-                  href="https://zakkeasterbrook.github.io/blockpulse-next/"
+                  href="https://zakkeasterbrook.github.io/blockpulse-next/?ref=launch"
                   className="flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-white/80 transition hover:bg-white/10"
                   target="_blank"
                 >
@@ -169,8 +170,8 @@ export default function Home() {
                 <MetricRow label="Block" value={stats ? `#${formatNumber(stats.blockHeight)}` : "..."} highlight />
                 <MetricRow label="BTC Price" value={stats ? `$${formatNumber(stats.priceUSD, { maximumFractionDigits: 0 })}` : "..."} />
                 <MetricRow label="Mempool" value={stats ? `${formatNumber(stats.mempoolTxs)} txs` : "..."} />
-                <MetricRow label="Virtual Size" value={stats ? `${formatNumber(stats.fastestFee)} vMB` : "..."} />
-                <MetricRow label="Hash Pulse" value={stats ? `${formatNumber(stats.hashRate, { maximumFractionDigits: 2 })} EH/s` : "..."} />
+                <MetricRow label="High Fee" value={stats ? `${formatNumber(stats.highFeePerKb)} sat/kB` : "..."} />
+                <MetricRow label="Hash Pulse" value={stats ? `${formatNumber(stats.hashRateEh, { maximumFractionDigits: 2 })} EH/s` : "..."} />
                 <MetricRow label="Updated" value={stats ? new Date(stats.updatedAt).toLocaleTimeString() : "..."} />
               </div>
               {error && <p className="mt-4 text-xs text-orange-300">{error}</p>}
