@@ -1,18 +1,27 @@
-"use client";
+ï»¿"use client";
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const sparks = [
-  { title: "Realtime Build", desc: "Animated hero wired to layered gradients and motion-ready layout built solely with Tailwind." },
-  { title: "Aurora Grid", desc: "Subtle neon mesh adds depth without large assets." },
-  { title: "Quick Actions", desc: "Launch the playground, fork the repo or open docs in one tap." }
+  {
+    title: "Realtime Build",
+    desc: "Animated hero wired to layered gradients and motion-ready layout built solely with Tailwind.",
+  },
+  {
+    title: "Aurora Grid",
+    desc: "Subtle neon mesh adds depth without large assets.",
+  },
+  {
+    title: "Quick Actions",
+    desc: "Launch the playground, fork the repo or open docs in one tap.",
+  },
 ];
 
 const timeline = [
   { label: "Envision", detail: "Describe the palette + emotion." },
   { label: "Generate", detail: "Next.js + Tailwind scaffold composes instantly." },
-  { label: "Ship", detail: "Deploy to Vercel/GitHub from the action bar." }
+  { label: "Ship", detail: "Deploy to Vercel/GitHub from the action bar." },
 ];
 
 export default function Home() {
@@ -93,9 +102,9 @@ export default function Home() {
               globals.css ships with CSS custom properties so you can turn this into a brutalist mono page or a pastel gradient vibe in seconds.
             </p>
             <ul className="mt-6 space-y-3 text-sm">
-              <li>• Tailwind tokens map to CSS vars for instant theming.</li>
-              <li>• Glassmorphism utilities ready for reuse.</li>
-              <li>• Smooth scroll + grid overlay toggled by a single class.</li>
+              <li>â€¢ Tailwind tokens map to CSS vars for instant theming.</li>
+              <li>â€¢ Glassmorphism utilities ready for reuse.</li>
+              <li>â€¢ Smooth scroll + grid overlay toggled by a single class.</li>
             </ul>
           </div>
         </section>
