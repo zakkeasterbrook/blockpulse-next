@@ -1,93 +1,212 @@
-﻿"use client";
+"use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { Activity, ArrowRight, ArrowUpRight, Radio, RefreshCw, Zap } from "lucide-react";
 
-const sparks = [
+type PulseStats = {
+  blockHeight: number;
+  mempoolTxs: number;
+  fastestFee: number;
+  priceUSD: number;
+  hashRate: number;
+  updatedAt: string;
+};
+
+const featureCards = [
   {
-    title: "Realtime Build",
-    desc: "Animated hero wired to layered gradients and motion-ready layout built solely with Tailwind.",
+    title: "Generative Grid",
+    detail: "Noise-driven background uses CSS variables tied to live Bitcoin data so the page subtly shifts every block.",
   },
   {
-    title: "Aurora Grid",
-    desc: "Subtle neon mesh adds depth without large assets.",
+    title: "Signal Stack",
+    detail: "Blocks, price action, mempool congestion and synthetic hash pulse all at a glance.",
   },
   {
-    title: "Quick Actions",
-    desc: "Launch the playground, fork the repo or open docs in one tap.",
+    title: "Dropzone Actions",
+    detail: "Hook the studio into Vercel, GitHub, or your own orchestrators with one tap actions.",
   },
 ];
 
-const timeline = [
-  { label: "Envision", detail: "Describe the palette + emotion." },
-  { label: "Generate", detail: "Next.js + Tailwind scaffold composes instantly." },
-  { label: "Ship", detail: "Deploy to Vercel/GitHub from the action bar." },
+const phases = [
+  {
+    label: "Catch a Block",
+    desc: "Realtime height + mempool delta push the hero gradient and ticker." ,
+  },
+  {
+    label: "Compose",
+    desc: "Slot in your narrative, ship the preset sections or remix them in minutes.",
+  },
+  {
+    label: "Amplify",
+    desc: "Export as static, wire to GitHub Pages, Vercel, or slap on a custom domain instantly.",
+  },
 ];
+
+const reactionPills = [
+  "⚡ 9s gradient loop",
+  "🟠 Glass stack",
+  "🛰️ Live chain feed",
+  "🧪 Motion-ready",
+  "🧊 Frosted panels",
+  "🪂 Drop-in sections",
+];
+
+const formatNumber = (value: number, options: Intl.NumberFormatOptions = {}) =>
+  new Intl.NumberFormat("en-US", options).format(value);
 
 export default function Home() {
+  const [stats, setStats] = useState<PulseStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchStats = async () => {
+      try {
+        setError(null);
+        const [blocksRes, mempoolRes, priceRes] = await Promise.all([
+          fetch("https://mempool.space/api/blocks?limit=1"),
+          fetch("https://mempool.space/api/v1/dashboard"),
+          fetch("https://api.coindesk.com/v1/bpi/currentprice/BTC.json"),
+        ]);
+
+        if (!blocksRes.ok || !mempoolRes.ok || !priceRes.ok) {
+          throw new Error("Failed to load live data");
+        }
+
+        const [blockJson, mempoolJson, priceJson] = await Promise.all([
+          blocksRes.json(),
+          mempoolRes.json(),
+          priceRes.json(),
+        ]);
+
+        const latestBlock = blockJson?.[0];
+        const statsPayload: PulseStats = {
+          blockHeight: latestBlock?.height ?? 0,
+          mempoolTxs: mempoolJson?.mempool?.count ?? 0,
+          fastestFee: mempoolJson?.mempool?.vsize ?? 0,
+          priceUSD: Number(priceJson?.bpi?.USD?.rate_float ?? 0),
+          hashRate: mempoolJson?.difficulty?.current_hash_rate ?? 0,
+          updatedAt: new Date().toISOString(),
+        };
+
+        if (!cancelled) {
+          setStats(statsPayload);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setError("Live feed unavailable. Showing static layout only.");
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 45_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const heroHeadline = useMemo(() => {
+    if (!stats) return "BlockPulse Studio";
+    return `BlockPulse Studio · Block ${stats.blockHeight.toLocaleString()}`;
+  }, [stats]);
+
+  const gridTexture = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/grid.svg`;
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#05060a] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,153,0,0.25),_transparent_55%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,_transparent_1px),linear-gradient(90deg,_rgba(255,255,255,0.03)_1px,_transparent_1px)] bg-[size:60px_60px] opacity-40" />
+    <div className="relative min-h-screen overflow-hidden bg-[#010104] text-white">
+      <div className="pointer-events-none absolute inset-0 animate-pulse-slow bg-[radial-gradient(circle_at_top,_rgba(255,132,0,0.3),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,_transparent_1px),linear-gradient(90deg,_rgba(255,255,255,0.03)_1px,_transparent_1px)] bg-[size:70px_70px] opacity-30" />
 
       <main className="relative z-10 mx-auto flex max-w-6xl flex-col gap-12 px-6 py-20">
-        <section className="rounded-[32px] border border-white/10 bg-white/5 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-[0.4em] text-orange-200">BlockPulse Studio</p>
-              <h1 className="mt-3 max-w-2xl text-4xl font-semibold leading-tight text-white md:text-5xl">
-                Design-forward Next.js starter with cinematic gradients, motion-ready layout and zero boilerplate legacy.
-              </h1>
-              <p className="mt-4 max-w-2xl text-lg text-white/70">
-                Drop in your copy, swap the palette, and you have a product hero that feels alive. Built with the App Router, Tailwind
-                and a sprinkle of fancy CSS.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm font-medium">
-              <Link
-                href="https://nextjs.org"
-                className="flex items-center gap-2 rounded-full bg-white text-black px-6 py-2 transition hover:translate-y-0.5"
-                target="_blank"
-              >
-                Explore Next.js <ArrowRight size={18} />
-              </Link>
-              <Link
-                href="https://vercel.com"
-                className="rounded-full border border-white/40 px-6 py-2 text-white/80 transition hover:bg-white/10"
-                target="_blank"
-              >
-                Deploy on Vercel
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {sparks.map((spark) => (
-              <div key={spark.title} className="rounded-2xl bg-white/5 p-5 text-sm text-white/80">
-                <p className="text-xs uppercase tracking-[0.2em] text-orange-200">{spark.title}</p>
-                <p className="mt-3 text-base text-white">{spark.desc}</p>
+        <section className="rounded-[32px] border border-white/10 bg-white/5 p-10 shadow-[0_40px_140px_rgba(0,0,0,0.55)] backdrop-blur">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-6 lg:w-2/3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1 text-xs uppercase tracking-[0.3em] text-orange-200">
+                <Radio size={14} className="text-orange-300" /> Live Bitcoin Studio
               </div>
-            ))}
+              <h1 className="text-4xl font-semibold leading-tight md:text-5xl">{heroHeadline}</h1>
+              <p className="text-lg text-white/70">
+                Cinematic glassmorphism kit wired to the Bitcoin network. Gradients breathe as blocks land, stats power the ticker, and the layout is ready for any orange-pill story you want to ship.
+              </p>
+              <div className="flex flex-wrap gap-3 text-xs text-white/70">
+                {reactionPills.map((pill) => (
+                  <span key={pill} className="rounded-full border border-white/15 px-3 py-1">
+                    {pill}
+                  </span>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  href="https://github.com/zakkeasterbrook/blockpulse-next"
+                  className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-black transition hover:translate-y-0.5"
+                  target="_blank"
+                >
+                  View Repo <ArrowUpRight size={18} />
+                </Link>
+                <Link
+                  href="https://zakkeasterbrook.github.io/blockpulse-next/"
+                  className="flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-white/80 transition hover:bg-white/10"
+                  target="_blank"
+                >
+                  Launch Live Site <ArrowRight size={18} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="w-full rounded-3xl border border-white/15 bg-black/40 p-5 lg:w-1/3">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/50">
+                <span>Live Pulse</span>
+                <RefreshCw size={14} className={loading ? "animate-spin" : "text-white/40"} />
+              </div>
+              <div className="mt-4 space-y-4 text-sm">
+                <MetricRow label="Block" value={stats ? `#${formatNumber(stats.blockHeight)}` : "..."} highlight />
+                <MetricRow label="BTC Price" value={stats ? `$${formatNumber(stats.priceUSD, { maximumFractionDigits: 0 })}` : "..."} />
+                <MetricRow label="Mempool" value={stats ? `${formatNumber(stats.mempoolTxs)} txs` : "..."} />
+                <MetricRow label="Virtual Size" value={stats ? `${formatNumber(stats.fastestFee)} vMB` : "..."} />
+                <MetricRow label="Hash Pulse" value={stats ? `${formatNumber(stats.hashRate, { maximumFractionDigits: 2 })} EH/s` : "..."} />
+                <MetricRow label="Updated" value={stats ? new Date(stats.updatedAt).toLocaleTimeString() : "..."} />
+              </div>
+              {error && <p className="mt-4 text-xs text-orange-300">{error}</p>}
+            </div>
           </div>
         </section>
 
-        <section className="grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
-          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top,#ff9800_0%,#120400_65%)] p-10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-            <div className="pointer-events-none absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
-            <div className="relative z-10 flex flex-col gap-6">
-              <div>
-                <p className="text-sm uppercase tracking-[0.4em] text-white/70">Flow</p>
-                <h2 className="mt-3 text-3xl font-semibold">Prototype to polished in three beats.</h2>
+        <section className="grid gap-8 lg:grid-cols-3">
+          {featureCards.map((card) => (
+            <div key={card.title} className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-white/80">
+              <p className="text-xs uppercase tracking-[0.3em] text-orange-200">{card.title}</p>
+              <p className="mt-3 text-base text-white">{card.detail}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,#ff7600_0%,#100200_65%)] p-10 shadow-[0_20px_90px_rgba(0,0,0,0.5)]">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-25"
+              style={{ backgroundImage: `url(${gridTexture})`, backgroundSize: "cover" }}
+            />
+            <div className="relative z-10 space-y-6">
+              <div className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.3em] text-white/70">
+                <Activity size={16} /> Flow Engine
               </div>
+              <h2 className="text-3xl font-semibold">Prototype to fandom in three beats.</h2>
               <div className="space-y-4">
-                {timeline.map((step, index) => (
-                  <div key={step.label} className="flex gap-4 rounded-2xl bg-white/10 p-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black font-semibold">
-                      0{index + 1}
+                {phases.map((phase, idx) => (
+                  <div key={phase.label} className="flex gap-4 rounded-2xl bg-white/10 p-4">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-lg font-semibold text-black">
+                      0{idx + 1}
                     </div>
                     <div>
-                      <p className="text-sm uppercase tracking-[0.3em] text-white/70">{step.label}</p>
-                      <p className="text-lg text-white">{step.detail}</p>
+                      <p className="text-sm uppercase tracking-[0.3em] text-white/70">{phase.label}</p>
+                      <p className="text-base text-white/90">{phase.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -95,20 +214,39 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-8 text-white/80">
-            <p className="text-sm uppercase tracking-[0.4em] text-white/60">Palette switch</p>
-            <h2 className="mt-4 text-3xl font-semibold text-white">Neon + obsidian theme baked in</h2>
-            <p className="mt-4 text-base">
-              globals.css ships with CSS custom properties so you can turn this into a brutalist mono page or a pastel gradient vibe in seconds.
+          <div className="rounded-[32px] border border-white/10 bg-white/5 p-8">
+            <h3 className="text-sm uppercase tracking-[0.4em] text-white/60">Drop the kit</h3>
+            <p className="mt-3 text-3xl font-semibold text-white">A playground designed for kinetic storytelling.</p>
+            <p className="mt-4 text-base text-white/80">
+              Layer the preset hero, ticker, feed and action rail. Add your own data sources and swap the palette by editing a single Tailwind theme file.
             </p>
-            <ul className="mt-6 space-y-3 text-sm">
-              <li>• Tailwind tokens map to CSS vars for instant theming.</li>
-              <li>• Glassmorphism utilities ready for reuse.</li>
-              <li>• Smooth scroll + grid overlay toggled by a single class.</li>
+            <ul className="mt-6 space-y-3 text-sm text-white/70">
+              <li>• Client-side fetch with graceful failure and animated loader.</li>
+              <li>• CSS variables drive gradients tied to data pulses.</li>
+              <li>• Static export compatible → deploy anywhere, instantly.</li>
             </ul>
+            <div className="mt-8 flex items-center gap-3 text-white/70">
+              <Zap className="text-orange-300" size={20} />
+              Crafted by an autonomous ops stack. Fork it, remix it, deploy it.
+            </div>
           </div>
         </section>
       </main>
+    </div>
+  );
+}
+
+type MetricRowProps = {
+  label: string;
+  value: string;
+  highlight?: boolean;
+};
+
+function MetricRow({ label, value, highlight }: MetricRowProps) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+      <span className="text-xs uppercase tracking-[0.3em] text-white/50">{label}</span>
+      <span className={`text-sm font-semibold ${highlight ? "text-orange-300" : "text-white"}`}>{value}</span>
     </div>
   );
 }
