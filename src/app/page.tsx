@@ -7,7 +7,7 @@ import { Activity, ArrowRight, ArrowUpRight, Radio, RefreshCw, Zap } from "lucid
 type PulseStats = {
   blockHeight: number;
   mempoolTxs: number;
-  highFeePerKb: number;
+  fastestFee: number;
   priceUSD: number;
   hashRateEh: number;
   updatedAt: string;
@@ -66,29 +66,38 @@ export default function Home() {
     const fetchStats = async () => {
       try {
         setError(null);
-        const blockCypherPromise = fetch("https://api.blockcypher.com/v1/btc/main");
-        const pricePromise = fetch("https://api.coindesk.com/v1/bpi/currentprice/BTC.json");
-        const hashPromise = fetch("https://blockchain.info/q/hashrate?cors=true");
+        const [heightRes, mempoolRes, feeRes, priceRes, hashRes] = await Promise.all([
+          fetch("https://blockchain.info/q/getblockcount?cors=true"),
+          fetch("https://blockchain.info/q/unconfirmedcount?cors=true"),
+          fetch("https://blockchain.info/mempool/fees?cors=true"),
+          fetch("https://blockchain.info/ticker?cors=true"),
+          fetch("https://blockchain.info/q/hashrate?cors=true"),
+        ]);
 
-        const [blockRes, priceRes, hashRes] = await Promise.all([blockCypherPromise, pricePromise, hashPromise]);
-
-        if (!blockRes.ok || !priceRes.ok || !hashRes.ok) {
+        if (![heightRes, mempoolRes, feeRes, priceRes, hashRes].every((res) => res.ok)) {
           throw new Error("Failed to load live data");
         }
 
-        const [blockJson, priceJson, hashText] = await Promise.all([
-          blockRes.json(),
+        const [heightText, mempoolText, feeJson, priceJson, hashText] = await Promise.all([
+          heightRes.text(),
+          mempoolRes.text(),
+          feeRes.json(),
           priceRes.json(),
           hashRes.text(),
         ]);
 
-        const hashRateGh = Number(hashText.trim());
+        const blockHeight = Number(heightText.trim());
+        const mempoolTxs = Number(mempoolText.trim());
+        const fastestFee = feeJson?.fastestFee ?? 0; // sat/vB
+        const priceUSD = Number(priceJson?.USD?.last ?? priceJson?.USD?.buy ?? 0);
+        const hashRateEh = Number(hashText.trim()) / 1_000_000; // GH/s -> EH/s
+
         const statsPayload: PulseStats = {
-          blockHeight: blockJson?.height ?? 0,
-          mempoolTxs: blockJson?.unconfirmed_count ?? 0,
-          highFeePerKb: blockJson?.high_fee_per_kb ?? 0,
-          priceUSD: Number(priceJson?.bpi?.USD?.rate_float ?? 0),
-          hashRateEh: Number.isFinite(hashRateGh) ? hashRateGh / 1_000_000 : 0,
+          blockHeight: Number.isFinite(blockHeight) ? blockHeight : 0,
+          mempoolTxs: Number.isFinite(mempoolTxs) ? mempoolTxs : 0,
+          fastestFee: Number.isFinite(fastestFee) ? fastestFee : 0,
+          priceUSD: Number.isFinite(priceUSD) ? priceUSD : 0,
+          hashRateEh: Number.isFinite(hashRateEh) ? hashRateEh : 0,
           updatedAt: new Date().toISOString(),
         };
 
@@ -170,7 +179,7 @@ export default function Home() {
                 <MetricRow label="Block" value={stats ? `#${formatNumber(stats.blockHeight)}` : "..."} highlight />
                 <MetricRow label="BTC Price" value={stats ? `$${formatNumber(stats.priceUSD, { maximumFractionDigits: 0 })}` : "..."} />
                 <MetricRow label="Mempool" value={stats ? `${formatNumber(stats.mempoolTxs)} txs` : "..."} />
-                <MetricRow label="High Fee" value={stats ? `${formatNumber(stats.highFeePerKb)} sat/kB` : "..."} />
+                <MetricRow label="Fast Fee" value={stats ? `${formatNumber(stats.fastestFee)} sat/vB` : "..."} />
                 <MetricRow label="Hash Pulse" value={stats ? `${formatNumber(stats.hashRateEh, { maximumFractionDigits: 2 })} EH/s` : "..."} />
                 <MetricRow label="Updated" value={stats ? new Date(stats.updatedAt).toLocaleTimeString() : "..."} />
               </div>
