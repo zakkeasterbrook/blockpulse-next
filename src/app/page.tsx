@@ -66,38 +66,19 @@ export default function Home() {
     const fetchStats = async () => {
       try {
         setError(null);
-        const [heightRes, mempoolRes, feeRes, priceRes, hashRes] = await Promise.all([
-          fetch("https://blockchain.info/q/getblockcount?cors=true"),
-          fetch("https://blockchain.info/q/unconfirmedcount?cors=true"),
-          fetch("https://blockchain.info/mempool/fees?cors=true"),
-          fetch("https://blockchain.info/ticker?cors=true"),
-          fetch("https://blockchain.info/q/hashrate?cors=true"),
-        ]);
+        const res = await fetch("https://api.blockchair.com/bitcoin/stats", { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load Blockchair stats");
+        const payload = await res.json();
+        const data = payload?.data;
+        if (!data) throw new Error("Empty payload");
 
-        if (![heightRes, mempoolRes, feeRes, priceRes, hashRes].every((res) => res.ok)) {
-          throw new Error("Failed to load live data");
-        }
-
-        const [heightText, mempoolText, feeJson, priceJson, hashText] = await Promise.all([
-          heightRes.text(),
-          mempoolRes.text(),
-          feeRes.json(),
-          priceRes.json(),
-          hashRes.text(),
-        ]);
-
-        const blockHeight = Number(heightText.trim());
-        const mempoolTxs = Number(mempoolText.trim());
-        const fastestFee = feeJson?.fastestFee ?? 0; // sat/vB
-        const priceUSD = Number(priceJson?.USD?.last ?? priceJson?.USD?.buy ?? 0);
-        const hashRateEh = Number(hashText.trim()) / 1_000_000; // GH/s -> EH/s
-
+        const hashRateRaw = Number(data.hashrate_24h ?? data.hashrate_1d ?? 0);
         const statsPayload: PulseStats = {
-          blockHeight: Number.isFinite(blockHeight) ? blockHeight : 0,
-          mempoolTxs: Number.isFinite(mempoolTxs) ? mempoolTxs : 0,
-          fastestFee: Number.isFinite(fastestFee) ? fastestFee : 0,
-          priceUSD: Number.isFinite(priceUSD) ? priceUSD : 0,
-          hashRateEh: Number.isFinite(hashRateEh) ? hashRateEh : 0,
+          blockHeight: data.best_block_height ?? data.blocks ?? 0,
+          mempoolTxs: data.mempool_transactions ?? data.mempool_txs ?? 0,
+          fastestFee: data.suggested_transaction_fee_per_byte_sat ?? data.median_transaction_fee_24h ?? 0,
+          priceUSD: data.market_price_usd ?? payload?.context?.market_price_usd ?? 0,
+          hashRateEh: Number.isFinite(hashRateRaw) ? hashRateRaw / 1e18 : 0,
           updatedAt: new Date().toISOString(),
         };
 
@@ -179,7 +160,7 @@ export default function Home() {
                 <MetricRow label="Block" value={stats ? `#${formatNumber(stats.blockHeight)}` : "..."} highlight />
                 <MetricRow label="BTC Price" value={stats ? `$${formatNumber(stats.priceUSD, { maximumFractionDigits: 0 })}` : "..."} />
                 <MetricRow label="Mempool" value={stats ? `${formatNumber(stats.mempoolTxs)} txs` : "..."} />
-                <MetricRow label="Fast Fee" value={stats ? `${formatNumber(stats.fastestFee)} sat/vB` : "..."} />
+                <MetricRow label="Suggested Fee" value={stats ? `${formatNumber(stats.fastestFee)} sat/vB` : "..."} />
                 <MetricRow label="Hash Pulse" value={stats ? `${formatNumber(stats.hashRateEh, { maximumFractionDigits: 2 })} EH/s` : "..."} />
                 <MetricRow label="Updated" value={stats ? new Date(stats.updatedAt).toLocaleTimeString() : "..."} />
               </div>
