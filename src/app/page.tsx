@@ -8,19 +8,19 @@ const features = [
     title: "Instant Grip",
     detail: "EDPM rubber skin creates cling on shingles, metal, or synthetic panels so your nailer stays where you set it.",
     icon: Shield,
-    image: "https://images.unsplash.com/photo-1503389152951-9f343605f61e?auto=format&fit=crop&w=800&q=80",
+    image: "/grip-feature1.jpg",
   },
   {
     title: "Universal Fit",
     detail: "Low-profile adhesive backing wraps around all major roofing nail guns without blocking magazines or triggers.",
     icon: Ruler,
-    image: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
+    image: "/grip-feature2.jpg",
   },
   {
     title: "Weatherproof",
     detail: "Heat, cold, tar, and solvents bounce off the industrial adhesive — no peeling, no residue.",
     icon: Droplets,
-    image: "https://images.unsplash.com/photo-1501556424050-d4816356b73e?auto=format&fit=crop&w=800&q=80",
+    image: "/grip-feature3.jpg",
   },
 ];
 
@@ -47,15 +47,15 @@ const faqs = [
 
 const gallery = [
   {
-    src: "https://images.unsplash.com/photo-1503386435953-66943ba0e1d2?auto=format&fit=crop&w=900&q=80",
+    src: "/grip-gallery1.jpg",
     caption: "Field crews staging nailers with GripGuard skins before sunrise installs.",
   },
   {
-    src: "https://images.unsplash.com/photo-1505164294036-5fadbfdd0ff2?auto=format&fit=crop&w=900&q=80",
+    src: "/grip-gallery2.jpg",
     caption: "EDPM texture keeps the tool planted even on 10/12 pitch metal roofs.",
   },
   {
-    src: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=900&q=80",
+    src: "/grip-gallery3.jpg",
     caption: "Owens Construction QA lab pressure-tests every batch of adhesive backing.",
   },
 ];
@@ -93,9 +93,10 @@ export default function Home() {
               <div className="absolute inset-0 rounded-[28px] bg-gradient-to-br from-orange-500/40 to-pink-500/30 blur-2xl" />
               <div className="relative overflow-hidden rounded-2xl border border-white/10">
                 <img
-                  src="https://images.unsplash.com/photo-1523419409543-0c1df022bddb?auto=format&fit=crop&w=900&q=80"
+                  src="/grip-hero.jpg"
                   alt="GripGuard prototype wrapped around nail gun"
                   className="h-full w-full object-cover"
+                  loading="lazy"
                 />
               </div>
               <div className="relative mt-4 rounded-2xl border border-white/10 bg-black/70 p-4 text-sm text-white/80">
