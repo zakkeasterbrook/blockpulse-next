@@ -1,23 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Shield, Droplets, Ruler, PhoneCall } from "lucide-react";
+import { ArrowRight, Shield, Droplets, Ruler, PhoneCall, Camera } from "lucide-react";
 
 const features = [
   {
     title: "Instant Grip",
     detail: "EDPM rubber skin creates cling on shingles, metal, or synthetic panels so your nailer stays where you set it.",
     icon: Shield,
+    image: "https://images.unsplash.com/photo-1503389152951-9f343605f61e?auto=format&fit=crop&w=800&q=80",
   },
   {
     title: "Universal Fit",
     detail: "Low-profile adhesive backing wraps around all major roofing nail guns without blocking magazines or triggers.",
     icon: Ruler,
+    image: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
   },
   {
     title: "Weatherproof",
     detail: "Heat, cold, tar, and solvents bounce off the industrial adhesive — no peeling, no residue.",
     icon: Droplets,
+    image: "https://images.unsplash.com/photo-1501556424050-d4816356b73e?auto=format&fit=crop&w=800&q=80",
   },
 ];
 
@@ -42,14 +45,29 @@ const faqs = [
   },
 ];
 
+const gallery = [
+  {
+    src: "https://images.unsplash.com/photo-1503386435953-66943ba0e1d2?auto=format&fit=crop&w=900&q=80",
+    caption: "Field crews staging nailers with GripGuard skins before sunrise installs.",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1505164294036-5fadbfdd0ff2?auto=format&fit=crop&w=900&q=80",
+    caption: "EDPM texture keeps the tool planted even on 10/12 pitch metal roofs.",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=900&q=80",
+    caption: "Owens Construction QA lab pressure-tests every batch of adhesive backing.",
+  },
+];
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#05060a] text-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 py-16">
         <header className="rounded-[32px] border border-white/10 bg-white/5 p-10 shadow-[0_40px_140px_rgba(0,0,0,0.55)] backdrop-blur">
           <p className="text-sm uppercase tracking-[0.5em] text-orange-300">Owens Construction</p>
-          <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="lg:w-3/5 space-y-5">
+          <div className="mt-6 grid gap-8 lg:grid-cols-[0.65fr_0.35fr]">
+            <div className="space-y-5">
               <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">GripGuard™ — the EDPM traction skin for roofing nail guns.</h1>
               <p className="text-lg text-white/70">
                 Roof pitches keep getting steeper. GripGuard wraps your nailer with a custom EDPM rubber strip so it anchors to shingles instead of
@@ -71,29 +89,35 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="lg:w-2/5 space-y-5 rounded-3xl border border-white/10 bg-black/40 p-6">
-              <p className="text-xs uppercase tracking-[0.4em] text-white/60">Product snapshot</p>
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-orange-500/40 to-pink-500/20 p-6 text-white/80">
-                <p className="text-sm">Material</p>
-                <p className="text-2xl font-semibold text-white">EDPM Rubber + Industrial Adhesive</p>
-                <p className="mt-4 text-sm">Surface coverage</p>
-                <p className="text-2xl font-semibold text-white">12" x 3" strip (trim to fit)</p>
-                <p className="mt-4 text-sm">Retention</p>
-                <p className="text-2xl font-semibold text-white">Static grip up to 7x smoother surfaces</p>
+            <div className="relative rounded-[28px] border border-white/10 bg-black/40 p-5">
+              <div className="absolute inset-0 rounded-[28px] bg-gradient-to-br from-orange-500/40 to-pink-500/30 blur-2xl" />
+              <div className="relative overflow-hidden rounded-2xl border border-white/10">
+                <img
+                  src="https://images.unsplash.com/photo-1523419409543-0c1df022bddb?auto=format&fit=crop&w=900&q=80"
+                  alt="GripGuard prototype wrapped around nail gun"
+                  className="h-full w-full object-cover"
+                />
               </div>
-              <p className="text-sm text-white/70">
-                Every strip ships in heat-sealed packs. Replace yearly or when the tread shows wear.
-              </p>
+              <div className="relative mt-4 rounded-2xl border border-white/10 bg-black/70 p-4 text-sm text-white/80">
+                <p className="text-xs uppercase tracking-[0.4em] text-white/60">Product snapshot</p>
+                <p className="mt-2 text-base">EDPM Rubber + Industrial Adhesive</p>
+                <p className="text-lg font-semibold text-white">12" x 3" strip · Static grip up to 7× smoother surfaces</p>
+              </div>
             </div>
           </div>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-3">
           {features.map((feature) => (
-            <div key={feature.title} className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-white/80">
-              <feature.icon className="text-orange-300" />
-              <p className="mt-4 text-xl font-semibold text-white">{feature.title}</p>
-              <p className="mt-2 text-sm">{feature.detail}</p>
+            <div key={feature.title} className="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
+              <div className="h-40 overflow-hidden">
+                <img src={feature.image} alt={feature.title} className="h-full w-full object-cover" />
+              </div>
+              <div className="p-6 text-white/80">
+                <feature.icon className="text-orange-300" />
+                <p className="mt-4 text-xl font-semibold text-white">{feature.title}</p>
+                <p className="mt-2 text-sm">{feature.detail}</p>
+              </div>
             </div>
           ))}
         </section>
@@ -133,6 +157,20 @@ export default function Home() {
                 <p className="text-xs">reported on pilot crews.</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
+          <div className="flex items-center gap-2 text-sm uppercase tracking-[0.4em] text-white/60">
+            <Camera size={16} className="text-orange-200" /> Visual field notes
+          </div>
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            {gallery.map((frame) => (
+              <figure key={frame.src} className="rounded-2xl border border-white/10 bg-black/30">
+                <img src={frame.src} alt={frame.caption} className="h-48 w-full rounded-t-2xl object-cover" />
+                <figcaption className="p-4 text-sm text-white/75">{frame.caption}</figcaption>
+              </figure>
+            ))}
           </div>
         </section>
 
