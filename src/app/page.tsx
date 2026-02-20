@@ -177,6 +177,13 @@ export default function Home() {
                 >
                   Launch Live Site <ArrowRight size={18} />
                 </Link>
+                <Link
+                  href="https://bitcoin.org/bitcoin.pdf"
+                  className="flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-white/80 transition hover:bg-white/10"
+                  target="_blank"
+                >
+                  Read the Whitepaper <ArrowRight size={18} />
+                </Link>
               </div>
               <div className="grid gap-4 text-sm text-white/70 sm:grid-cols-2">
                 <StatBadge title="Block height" value={stats ? `#${formatNumber(stats.blockHeight)}` : "..."} />
